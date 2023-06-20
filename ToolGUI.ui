@@ -302,7 +302,7 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>600</x>
+      <x>680</x>
       <y>150</y>
       <width>201</width>
       <height>71</height>
@@ -324,6 +324,37 @@
     </property>
     <property name="text">
      <string>Export data to CSV</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="runFolderButton">
+    <property name="geometry">
+     <rect>
+      <x>780</x>
+      <y>60</y>
+      <width>141</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="layoutDirection">
+     <enum>Qt::LeftToRight</enum>
+    </property>
+    <property name="autoFillBackground">
+     <bool>false</bool>
+    </property>
+    <property name="text">
+     <string>Run Folder/s 
+Analysis</string>
     </property>
    </widget>
   </widget>

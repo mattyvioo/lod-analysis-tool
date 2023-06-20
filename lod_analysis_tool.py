@@ -69,13 +69,31 @@ class UnrealUITemplate(QtWidgets.QWidget):
             ]
         ]
         
+        self.asset_reg = ue.AssetRegistryHelpers.get_asset_registry()
+        self.paths = ue.EditorUtilityLibrary.get_selected_folder_paths()
+        self.modified_paths = []
+        self.assetsToFilter = []
+        self.static_meshes = []
+        
         self.newData = []
         
         self.csv_file_path = current_file_path + "\\data-" + currentDateTime + ".csv"
 
         self.btn_run.clicked.connect(self.Run)
         self.btn_export.clicked.connect(lambda: self.ExportData(self.data, self.csv_file_path, self.newData))
-        
+    
+    
+    def ProcessPaths(self, originalPathsArray, modifiedPathArray):
+        for path in originalPathsArray:
+            original_string = path
+            modified_string = original_string.replace("/All/", "/", 1)
+            modifiedPathArray.append(modified_string)
+            
+    def GetStaticMeshesInAssets(self, assetsList, staticMeshesList):    
+        for i in range(len(assetsList)):
+            for asset in assetsList[i]:
+                if asset.get_editor_property("asset_class_path").get_editor_property("asset_name") == "StaticMesh":
+                    staticMeshesList.append(asset)    
         
     def ExportData(self, data, path, new_data):
         ue.log("Data exported")
