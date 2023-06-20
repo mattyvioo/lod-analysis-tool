@@ -41,6 +41,7 @@ class UnrealUITemplate(QtWidgets.QWidget):
         self.test_text = self.widget.findChild(QtWidgets.QTextEdit, "textEdit")
 
         self.btn_run = self.widget.findChild(QtWidgets.QPushButton, "runButton")
+        self.btn_folderRun = self.widget.findChild(QtWidgets.QPushButton, "runFolderButton")
         self.btn_export = self.widget.findChild(QtWidgets.QPushButton, "exportButton")
         self.txt_assetName = self.widget.findChild(
             QtWidgets.QLabel, "lbl_editAssetName"
@@ -70,7 +71,6 @@ class UnrealUITemplate(QtWidgets.QWidget):
         ]
         
         self.asset_reg = ue.AssetRegistryHelpers.get_asset_registry()
-        self.paths = ue.EditorUtilityLibrary.get_selected_folder_paths()
         self.modified_paths = []
         self.assetsToFilter = []
         self.static_meshes = []
@@ -79,7 +79,8 @@ class UnrealUITemplate(QtWidgets.QWidget):
         
         self.csv_file_path = current_file_path + "\\data-" + currentDateTime + ".csv"
 
-        self.btn_run.clicked.connect(self.Run)
+        self.btn_run.clicked.connect(lambda: self.Run(False))
+        self.btn_folderRun.clicked.connect(lambda: self.Run(True))
         self.btn_export.clicked.connect(lambda: self.ExportData(self.data, self.csv_file_path, self.newData))
     
     
@@ -93,7 +94,7 @@ class UnrealUITemplate(QtWidgets.QWidget):
         for i in range(len(assetsList)):
             for asset in assetsList[i]:
                 if asset.get_editor_property("asset_class_path").get_editor_property("asset_name") == "StaticMesh":
-                    staticMeshesList.append(asset)    
+                    staticMeshesList.append(asset.get_asset())    
         
     def ExportData(self, data, path, new_data):
         ue.log("Data exported")
@@ -114,7 +115,7 @@ class UnrealUITemplate(QtWidgets.QWidget):
     def ShowWarningMessageBox(self):
         QtWidgets.QMessageBox.warning(self.window, "Warning", "Multiple assets selected. Only the fist one will be shown in the UI, the rest of the data will be shown in the table below.")
         
-    def Run(self):
+    def Run(self, isFolderAnalysis):
         
         self.tbl_lodAnalysis.setRowCount(0)
         editor_utility_library = ue.EditorUtilityLibrary
@@ -131,10 +132,22 @@ class UnrealUITemplate(QtWidgets.QWidget):
             return 180 - ue.MathLibrary.radians_to_degrees(
                 ue.MathLibrary.acos(dot_product)
             )
+            
+        assets = []
 
-        assets = editor_utility_library.get_selected_assets()
-        
-        if ue.Array.__len__(assets) > 1:
+        if isFolderAnalysis == False:
+            assets = editor_utility_library.get_selected_assets()
+        elif isFolderAnalysis == True:
+            paths = ue.EditorUtilityLibrary.get_selected_folder_paths()    
+            self.ProcessPaths(paths, self.modified_paths)
+            assets.append(self.asset_reg.get_assets_by_paths(self.modified_paths, True))
+            self.GetStaticMeshesInAssets(assets, self.static_meshes)
+            for mesh in self.static_meshes:
+                assets.append(ue.StaticMesh.get_default_object().cast(mesh))
+                
+        print(assets)        
+            
+        if len(assets) > 1:
             self.ShowWarningMessageBox()
             
         for asset in assets:
