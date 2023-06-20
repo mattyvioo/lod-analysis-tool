@@ -20,7 +20,7 @@ A simple python tool integrated in Unreal Engine to evaluate LoDs in engine.
 
 ## Installation
 
-Follow the official documentation to integrate Python in the Enigne first.
+Follow the official documentation to integrate Python in the Engine first.
 https://docs.unrealengine.com/5.1/en-US/scripting-the-unreal-editor-using-python/
 
 The **custom_menu_unreal.py**, **lod_analysis_tool.py**, **ToolGUI_ui.py** and **ToolGUI.ui** must stay in the same folder.
