@@ -13,7 +13,6 @@ drive = os.path.splitdrive(current_file_path)[0]
 
 currentDateTime = str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
 
-
 class UnrealUITemplate(QtWidgets.QWidget):
     """
     Create a default tool window.
@@ -59,6 +58,7 @@ class UnrealUITemplate(QtWidgets.QWidget):
             QtWidgets.QTableWidget, "tbl_analysis"
         )
         
+        # Create the header for the CSV export
         self.data = [
             [
                 "AssetName",
@@ -97,6 +97,7 @@ class UnrealUITemplate(QtWidgets.QWidget):
         QtWidgets.QMessageBox.warning(self.window, "Warning", "Multiple assets selected. Only the fist one will be shown in the UI, the rest of the data will be shown in the table below.")
         
     def Run(self):
+        
         self.tbl_lodAnalysis.setRowCount(0)
         editor_utility_library = ue.EditorUtilityLibrary
 
@@ -114,10 +115,11 @@ class UnrealUITemplate(QtWidgets.QWidget):
             )
 
         assets = editor_utility_library.get_selected_assets()
+        
         if ue.Array.__len__(assets) > 1:
             self.ShowWarningMessageBox()
+            
         for asset in assets:
-            # self.tbl_lodAnalysis.clearContents()
             lod_count = ue.StaticMesh.get_num_lods(asset)
             asset_name = asset.get_name()
             lod_screen_sizes = ue.StaticMeshEditorSubsystem.get_default_object().get_lod_screen_sizes(asset)
@@ -146,23 +148,9 @@ class UnrealUITemplate(QtWidgets.QWidget):
                 thintriangles = []
 
                 row = self.tbl_lodAnalysis.rowCount()
-                self.tbl_lodAnalysis.insertRow(row)
-                
-                item1 = QtWidgets.QTableWidgetItem(asset_name)
-                SetItemInTable(self, item1, 0, asset_name, row)
+                self.tbl_lodAnalysis.insertRow(row)                
 
-                item2 = QtWidgets.QTableWidgetItem(k)
-                SetItemInTable(self, item2, 1, k, row)
-
-                item3 = QtWidgets.QTableWidgetItem(num_triangles_lod)
-                SetItemInTable(self, item3, 2, num_triangles_lod, row)
-                
-                item4 = QtWidgets.QTableWidgetItem(vertex_density)
-                SetItemInTable(self, item4, 3, round(vertex_density, 3), row)
-                
-                item5 = QtWidgets.QTableWidgetItem(lod_screen_sizes[k])
-                SetItemInTable(self, item5, 4, f"{round(lod_screen_sizes[k], 4)*100}%", row)
-
+                # Iterating over each triangle to catch micro and thin ones
                 for i in range(num_triangles_lod):
                     triangle_vertices = sm_description.get_triangle_vertices(
                         ue.TriangleID(i)
@@ -204,6 +192,8 @@ class UnrealUITemplate(QtWidgets.QWidget):
                         * (triangle_semi_perimeter - third_edge_lenght)
                     )
 
+                    
+                    # TODO: THIS NEEDS TO BE USER-SETTABLE
                     if triangle_area < 1:
                         micro_triangles_count += 1
                         microtriangles.append(i)
@@ -227,6 +217,8 @@ class UnrealUITemplate(QtWidgets.QWidget):
                     ]
 
                     thin_angle_count = 0
+                    
+                    # TODO: THIS NEEDS TO BE USER-SETTABLE
                     for angle in angles:
                         if angle < 15:
                             thin_angle_count += 1
@@ -234,6 +226,23 @@ class UnrealUITemplate(QtWidgets.QWidget):
                     if thin_angle_count > 0:
                         thin_triangles_count += 1
                         thintriangles.append(i)
+                
+                
+                # Populating the table        
+                item1 = QtWidgets.QTableWidgetItem(asset_name)
+                SetItemInTable(self, item1, 0, asset_name, row)
+
+                item2 = QtWidgets.QTableWidgetItem(k)
+                SetItemInTable(self, item2, 1, k, row)
+
+                item3 = QtWidgets.QTableWidgetItem(num_triangles_lod)
+                SetItemInTable(self, item3, 2, num_triangles_lod, row)
+                
+                item4 = QtWidgets.QTableWidgetItem(vertex_density)
+                SetItemInTable(self, item4, 3, round(vertex_density, 3), row)
+                
+                item5 = QtWidgets.QTableWidgetItem(lod_screen_sizes[k])
+                SetItemInTable(self, item5, 4, f"{round(lod_screen_sizes[k], 4)*100}%", row)
 
                 item6 = QtWidgets.QTableWidgetItem(str(micro_triangles_count))
                 SetItemInTable(self, item6, 5, micro_triangles_count, row)
@@ -246,6 +255,7 @@ class UnrealUITemplate(QtWidgets.QWidget):
                 for item in table_items:
                     item.setTextAlignment(3)
 
+                # Preparea data for the CSV Export
                 new_data = [
                     
                         asset_name,
