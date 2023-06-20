@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>827</width>
-    <height>485</height>
+    <width>1000</width>
+    <height>484</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <widget class="QPushButton" name="runButton">
     <property name="geometry">
      <rect>
-      <x>540</x>
+      <x>630</x>
       <y>60</y>
       <width>141</width>
       <height>71</height>
@@ -35,7 +35,7 @@
    <widget class="QLabel" name="lbl_assetName">
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>170</x>
       <y>90</y>
       <width>141</width>
       <height>21</height>
@@ -65,7 +65,7 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>300</x>
+      <x>390</x>
       <y>10</y>
       <width>220</width>
       <height>41</height>
@@ -92,7 +92,7 @@
    <widget class="QLabel" name="lbl_assetName_3">
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>170</x>
       <y>130</y>
       <width>141</width>
       <height>21</height>
@@ -122,7 +122,7 @@
    <widget class="QLabel" name="lbl_assetName_4">
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>170</x>
       <y>170</y>
       <width>141</width>
       <height>21</height>
@@ -154,12 +154,21 @@
      <rect>
       <x>20</x>
       <y>250</y>
-      <width>791</width>
+      <width>960</width>
       <height>192</height>
      </rect>
     </property>
     <attribute name="horizontalHeaderDefaultSectionSize">
-     <number>110</number>
+     <number>130</number>
+    </attribute>
+    <attribute name="horizontalHeaderMinimumSectionSize">
+     <number>39</number>
+    </attribute>
+    <attribute name="verticalHeaderCascadingSectionResizes">
+     <bool>false</bool>
+    </attribute>
+    <attribute name="verticalHeaderStretchLastSection">
+     <bool>false</bool>
     </attribute>
     <column>
      <property name="text">
@@ -178,7 +187,7 @@
     </column>
     <column>
      <property name="text">
-      <string>Vertex Density</string>
+      <string>Vertex Density tris/m³</string>
      </property>
     </column>
     <column>
@@ -200,7 +209,7 @@
    <widget class="QLabel" name="lbl_editAssetName">
     <property name="geometry">
      <rect>
-      <x>230</x>
+      <x>320</x>
       <y>90</y>
       <width>211</width>
       <height>21</height>
@@ -230,7 +239,7 @@
    <widget class="QLabel" name="lbl_editNumberLods">
     <property name="geometry">
      <rect>
-      <x>260</x>
+      <x>350</x>
       <y>130</y>
       <width>171</width>
       <height>21</height>
@@ -260,7 +269,7 @@
    <widget class="QLabel" name="lbl_editNumberMats">
     <property name="geometry">
      <rect>
-      <x>260</x>
+      <x>350</x>
       <y>170</y>
       <width>171</width>
       <height>21</height>
@@ -293,7 +302,7 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>510</x>
+      <x>600</x>
       <y>150</y>
       <width>201</width>
       <height>71</height>
@@ -323,7 +332,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>827</width>
+     <width>1000</width>
      <height>21</height>
     </rect>
    </property>

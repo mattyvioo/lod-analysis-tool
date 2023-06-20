@@ -1,7 +1,7 @@
 import unreal
 import os
 
-current_file_path = os.path.abspath(__file__)
+current_file_path = os.path.dirname(__file__)
 drive = os.path.splitdrive(current_file_path)[0]
 
 
@@ -10,7 +10,7 @@ class MyEntryScript(unreal.ToolMenuEntryScript):
     @unreal.ufunction(override=True)
     def execute(self, context):
         unreal.PythonScriptLibrary.execute_python_command(
-            drive + "\\Progetti\\Python\\test_pyside.py"
+            current_file_path + "\\lod_analysis_tool.py"
         )
 
 

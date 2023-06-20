@@ -8,7 +8,7 @@ from PySide2.QtCore import Qt
 
 import os
 
-current_file_path = os.path.abspath(__file__)
+current_file_path = os.path.dirname(__file__)
 drive = os.path.splitdrive(current_file_path)[0]
 
 currentDateTime = str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
@@ -29,9 +29,9 @@ class UnrealUITemplate(QtWidgets.QWidget):
         super(UnrealUITemplate, self).__init__(parent)
 
         # load the created UI widget
-        self.widgetPath = drive + "\\Progetti\\Python\\"
+        self.widgetPath = current_file_path + "\\"
         self.widget = QtUiTools.QUiLoader().load(
-            self.widgetPath + "TestGui.ui"
+            self.widgetPath + "ToolGUI.ui"
         )  # path to PyQt .ui file
 
         # attach the widget to the instance of this class (aka self)
@@ -71,7 +71,7 @@ class UnrealUITemplate(QtWidgets.QWidget):
         
         self.newData = []
         
-        self.csv_file_path = drive + "\\Progetti\\Python\\Data-" + currentDateTime + ".csv"
+        self.csv_file_path = current_file_path + "\\data-" + currentDateTime + ".csv"
 
         self.btn_run.clicked.connect(self.Run)
         self.btn_export.clicked.connect(lambda: self.ExportData(self.data, self.csv_file_path, self.newData))
@@ -161,7 +161,7 @@ class UnrealUITemplate(QtWidgets.QWidget):
                 SetItemInTable(self, item4, 3, round(vertex_density, 3), row)
                 
                 item5 = QtWidgets.QTableWidgetItem(lod_screen_sizes[k])
-                SetItemInTable(self, item5, 4, lod_screen_sizes[k], row)
+                SetItemInTable(self, item5, 4, f"{round(lod_screen_sizes[k], 4)*100}%", row)
 
                 for i in range(num_triangles_lod):
                     triangle_vertices = sm_description.get_triangle_vertices(
