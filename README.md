@@ -7,11 +7,8 @@ A simple Python tool integrated into UE5 to evaluate LoDs in the engine.
 ## Demo
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=TBobQ3O0bvA" target="_blank">
- <img src="http://img.youtube.com/vi/TBobQ3O0bvA/maxresdefault.jpg" alt="Watch the video" width="240" height="180" border="10" />
+ <img src="http://img.youtube.com/vi/TBobQ3O0bvA/maxresdefault.jpg" alt="Watch the video" width="720" height="540" border="10" />
 </a>
-
-[![Watch the video](https://img.youtube.com/vi/TBobQ3O0bvA/hqdefault.jpg)](https://youtu.be/TBobQ3O0bvA)
-
 
 ## Tech Stack
 
