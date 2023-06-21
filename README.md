@@ -6,7 +6,7 @@ A simple python tool integrated in Unreal Engine to evaluate LoDs in engine.
 
 ## Demo
 
-[![Watch the video](https://img.youtube.com/vi/TBobQ3O0bvA/default.jpg)](https://youtu.be/TBobQ3O0bvA)
+[![Watch the video](https://img.youtube.com/vi/TBobQ3O0bvA/hqdefault.jpg)](https://youtu.be/TBobQ3O0bvA)
 
 
 ## Tech Stack
