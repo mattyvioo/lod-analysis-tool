@@ -2,6 +2,7 @@ import unreal as ue
 import math
 import csv
 import sys
+import subprocess
 import datetime
 from PySide2 import QtUiTools, QtWidgets
 from PySide2.QtCore import Qt
@@ -59,7 +60,7 @@ class UnrealUITemplate(QtWidgets.QWidget):
             QtWidgets.QTableWidget, "tbl_analysis"
         )
         
-        # Create the header for the CSV export
+        # Create the headers for the CSV export
         self.data = [
             [
                 "AssetName",
@@ -74,41 +75,64 @@ class UnrealUITemplate(QtWidgets.QWidget):
         self.modified_paths = []
         self.assetsToFilter = []
         self.static_meshes = []
+        self.isLastAnalysisFolder = False
         
         self.newData = []
-        
-        self.csv_file_path = current_file_path + "\\data-" + currentDateTime + ".csv"
 
         self.btn_run.clicked.connect(lambda: self.Run(False))
         self.btn_folderRun.clicked.connect(lambda: self.Run(True))
-        self.btn_export.clicked.connect(lambda: self.ExportData(self.data, self.csv_file_path, self.newData))
+        self.btn_export.clicked.connect(lambda: self.ExportData(self.data, current_file_path, self.newData, self.isLastAnalysisFolder))
+        
+
+    def open_csv(self, file_path: str):
+        if sys.platform.startswith('darwin'):  # macOS
+            subprocess.call(('open', file_path))
+        elif sys.platform.startswith('win32'):  # Windows
+            subprocess.call(('start', file_path), shell=True)
+        elif sys.platform.startswith('linux'):  # Linux
+            subprocess.call(('xdg-open', file_path))
+        else:
+            print("Unsupported operating system.")
     
     
-    def ProcessPaths(self, originalPathsArray, modifiedPathArray):
+    def ProcessPaths(self, originalPathsArray: list, modifiedPathArray: list):
         for path in originalPathsArray:
             original_string = path
             modified_string = original_string.replace("/All/", "/", 1)
             modifiedPathArray.append(modified_string)
             
-    def GetStaticMeshesInAssets(self, assetsList, staticMeshesList):    
+    def GetStaticMeshesInAssets(self, assetsList: list, staticMeshesList: list):    
         for i in range(len(assetsList)):
             for asset in assetsList[i]:
                 if asset.get_editor_property("asset_class_path").get_editor_property("asset_name") == "StaticMesh":
                     staticMeshesList.append(asset.get_asset())    
         
-    def ExportData(self, data, path, new_data):
+    def ExportData(self, data, path: str, new_data: list, isFolderExport: bool):
+        
+        currentDateTime = str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
+        
+        current_path = path + "\\data-" + currentDateTime
+        
+        if isFolderExport:
+            for modifiedPath in self.modified_paths:
+                current_path = current_path + modifiedPath.replace("/", "-")
+        
+        current_path = current_path + ".csv"
+            
         ue.log("Data exported")
-        with open(path, "w", newline="") as file:
+        
+        with open(current_path, "w", newline="") as file:
             writer = csv.writer(file)
             writer.writerows(data)
             
-        with open(path, "a", newline="") as file:
+        with open(current_path, "a", newline="") as file:
                     # Create a CSV writer object
                     writer = csv.writer(file)
 
                     # Write the new data to the CSV file
                     writer.writerows(new_data)
         QtWidgets.QMessageBox.information(self.window, "Success!", "Data exported succesfully.")
+        self.open_csv(current_path)
         
                 
     
@@ -117,15 +141,17 @@ class UnrealUITemplate(QtWidgets.QWidget):
         
     def Run(self, isFolderAnalysis):
         
+        self.newData = []
+        
         self.tbl_lodAnalysis.setRowCount(0)
         editor_utility_library = ue.EditorUtilityLibrary
 
-        def SetItemInTable(self, item, indexInTable, data, row):
+        def SetItemInTable(self, item: QtWidgets.QTableWidgetItem, indexInTable: int, data: list, row: int):
             item.setText(str(data))
             item.setFlags(item.flags() & ~Qt.ItemIsEditable)
             self.tbl_lodAnalysis.setItem(row, indexInTable, item)
 
-        def calculate_angle(a, b, c):
+        def calculate_angle(a: float, b: float, c: float) -> float:
             direction_a = ue.Vector.direction_unit_to(a, b)
             direction_b = ue.Vector.direction_unit_to(b, c)
             dot_product = ue.Vector.dot(direction_a, direction_b)
@@ -134,18 +160,23 @@ class UnrealUITemplate(QtWidgets.QWidget):
             )
             
         assets = []
+        self.static_meshes = []
+        self.modified_paths = []
 
         if isFolderAnalysis == False:
             assets = editor_utility_library.get_selected_assets()
+            self.isLastAnalysisFolder = False
         elif isFolderAnalysis == True:
             paths = ue.EditorUtilityLibrary.get_selected_folder_paths()    
             self.ProcessPaths(paths, self.modified_paths)
             assets.append(self.asset_reg.get_assets_by_paths(self.modified_paths, True))
             self.GetStaticMeshesInAssets(assets, self.static_meshes)
+            assets = []
             for mesh in self.static_meshes:
                 assets.append(ue.StaticMesh.get_default_object().cast(mesh))
+            self.isLastAnalysisFolder = True
                 
-        print(assets)        
+        print(assets)
             
         if len(assets) > 1:
             self.ShowWarningMessageBox()
@@ -165,6 +196,8 @@ class UnrealUITemplate(QtWidgets.QWidget):
                 str(ue.Array.__len__(asset.get_editor_property("static_materials")))
             )
             self.txt_numberLods.setText(str(lod_count))
+            
+            item_data = []
 
             for k in range(lod_count):
                 sm_description = ue.StaticMesh.get_static_mesh_description(asset, k)
@@ -286,8 +319,8 @@ class UnrealUITemplate(QtWidgets.QWidget):
                 for item in table_items:
                     item.setTextAlignment(3)
 
-                # Preparea data for the CSV Export
-                new_data = [
+                # Prepare data for the CSV Export
+                current_new_data = [
                     
                         asset_name,
                         num_triangles_lod,
@@ -297,12 +330,20 @@ class UnrealUITemplate(QtWidgets.QWidget):
                     
                 ]
                 
-                self.newData.append(new_data)
-
+                item_data.append(current_new_data)
+                
                 self.tbl_lodAnalysis.show()
                 self.tbl_lodAnalysis.update()
+                
+            for data in item_data:
+                self.newData.append(data)
 
-                self.btn_export.setEnabled(True)
+            self.btn_export.setEnabled(True)
+            
+
+            
+                
+        
 
     def resizeEvent(self, event):
         """
@@ -334,7 +375,7 @@ def openWindow():
     UnrealUITemplate.window.show()
     # update this with something unique to your tool
     UnrealUITemplate.window.setObjectName("LodAnalysisTool")
-    UnrealUITemplate.window.setWindowTitle("Lod Analysis Tool v0.1")
+    UnrealUITemplate.window.setWindowTitle("Lod Analysis Tool v0.2")
     ue.parent_external_window_to_slate(UnrealUITemplate.window.winId())
 
 

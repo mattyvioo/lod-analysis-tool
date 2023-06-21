@@ -187,7 +187,7 @@
     </column>
     <column>
      <property name="text">
-      <string>Vertex Density tris/m³</string>
+      <string>Vertex Density tris/cm</string>
      </property>
     </column>
     <column>
