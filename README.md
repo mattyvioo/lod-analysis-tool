@@ -31,7 +31,7 @@ The **custom_menu_unreal.py**, **lod_analysis_tool.py**, **ToolGUI_ui.py**, and 
 
 You can run Python scripts in Unreal Engine by going to Tools>Execute Python Script.
 
-Run the custom_menu_unreal.py
+Run the custom_menu_unreal.py script.
 
 A new menu on the top bar will appear, you can then launch the tool from there.
 
@@ -47,6 +47,8 @@ If multiple assets are selected, only the first one will appear on the first hal
 
 You can export data to a CSV file with the "Export Data to CSV" button.
 
+In the "Config" folder you'll find a config.json file that you can edit to customize how many Micro or Thin triangles are allowed and how are they calculated.
+Be sure to do it with the tool closed.
 
 ## Screenshots
 
