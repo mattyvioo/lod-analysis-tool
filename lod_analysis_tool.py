@@ -6,6 +6,7 @@ import subprocess
 import datetime
 import json
 from PySide2 import QtUiTools, QtWidgets
+from PySide2.QtGui import QColor
 from PySide2.QtCore import Qt
 
 import os
@@ -82,6 +83,12 @@ class UnrealUITemplate(QtWidgets.QWidget):
         self.isLastAnalysisFolder = False
         self.microTrianglesAreaTreshold = config["microTrianglesAreaTreshold"]
         self.thinTrianglesAngleTreshold = config["thinTrianglesAngleTreshold"]
+        self.allowedMicrotrianglesPercentage = config["allowedMicrotrianglesPercentage"]
+        self.allowedThintrianglesPercentage = config["allowedThintrianglesPercentage"]
+        self.allowedTolerancePercentage = config["allowedTolerancePercentage"]
+        self.belowTresholdColor = QColor(0, 255, 0)
+        self.maximunTresholdColor = QColor(255, 255, 0)
+        self.overTresholdColor = QColor(255, 0, 0)
         
         self.newData = []
 
@@ -144,7 +151,16 @@ class UnrealUITemplate(QtWidgets.QWidget):
                     writer.writerows(new_data)
         QtWidgets.QMessageBox.information(self.window, "Success!", "Data exported succesfully.")
         self.showQuestionBox(current_path)
-        
+    
+    def SetTextColor(self, countToCheck: float, toleranceCount: float, allowedCount: float):
+        tempColor = self.belowTresholdColor
+        if countToCheck - toleranceCount > allowedCount:
+            tempColor = self.overTresholdColor
+        elif countToCheck - toleranceCount < allowedCount:
+            tempColor = self.belowTresholdColor
+        else:
+            tempColor = self.maximunTresholdColor
+        return tempColor    
     
     
     def ShowWarningMessageBox(self):
@@ -268,7 +284,6 @@ class UnrealUITemplate(QtWidgets.QWidget):
                     )
 
                     
-                    # TODO: THIS NEEDS TO BE USER-SETTABLE
                     if triangle_area < self.microTrianglesAreaTreshold:
                         micro_triangles_count += 1
                         microtriangles.append(i)
@@ -293,7 +308,6 @@ class UnrealUITemplate(QtWidgets.QWidget):
 
                     thin_angle_count = 0
                     
-                    # TODO: THIS NEEDS TO BE USER-SETTABLE
                     for angle in angles:
                         if angle < self.thinTrianglesAngleTreshold:
                             thin_angle_count += 1
@@ -302,6 +316,12 @@ class UnrealUITemplate(QtWidgets.QWidget):
                         thin_triangles_count += 1
                         thintriangles.append(i)
                 
+                allowedLodToleranceNumber = num_triangles_lod / 100 * self.allowedTolerancePercentage
+                allowedMicrotrianglesNumber = num_triangles_lod / 100 * self.allowedMicrotrianglesPercentage
+                allowedThintrianglesNumber = num_triangles_lod / 100 * self.allowedThintrianglesPercentage
+                
+                microTrianglesTextColor = self.SetTextColor(micro_triangles_count, allowedLodToleranceNumber, allowedMicrotrianglesNumber)
+                thinTrianglesTextColor = self.SetTextColor(thin_triangles_count, allowedLodToleranceNumber, allowedThintrianglesNumber)            
                 
                 # Populating the table        
                 item1 = QtWidgets.QTableWidgetItem(asset_name)
@@ -321,9 +341,11 @@ class UnrealUITemplate(QtWidgets.QWidget):
 
                 item6 = QtWidgets.QTableWidgetItem(str(micro_triangles_count))
                 SetItemInTable(self, item6, 5, micro_triangles_count, row)
+                item6.setForeground(QColor(microTrianglesTextColor))
 
                 item7 = QtWidgets.QTableWidgetItem(thin_triangles_count)
                 SetItemInTable(self, item7, 6, thin_triangles_count, row)
+                item7.setForeground(QColor(thinTrianglesTextColor))
                 
                 table_items = [item1, item2, item3, item4, item5, item6, item7]
                 
