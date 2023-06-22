@@ -4,6 +4,7 @@ import csv
 import sys
 import subprocess
 import datetime
+import json
 from PySide2 import QtUiTools, QtWidgets
 from PySide2.QtCore import Qt
 
@@ -11,6 +12,9 @@ import os
 
 current_file_path = os.path.dirname(__file__)
 drive = os.path.splitdrive(current_file_path)[0]
+
+jsonfile = open(current_file_path + "//config//config.json", 'r')
+config = json.load(jsonfile)
 
 currentDateTime = str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
 
@@ -76,6 +80,8 @@ class UnrealUITemplate(QtWidgets.QWidget):
         self.assetsToFilter = []
         self.static_meshes = []
         self.isLastAnalysisFolder = False
+        self.microTrianglesAreaTreshold = config["microTrianglesAreaTreshold"]
+        self.thinTrianglesAngleTreshold = config["thinTrianglesAngleTreshold"]
         
         self.newData = []
 
@@ -105,7 +111,12 @@ class UnrealUITemplate(QtWidgets.QWidget):
         for i in range(len(assetsList)):
             for asset in assetsList[i]:
                 if asset.get_editor_property("asset_class_path").get_editor_property("asset_name") == "StaticMesh":
-                    staticMeshesList.append(asset.get_asset())    
+                    staticMeshesList.append(asset.get_asset())   
+                    
+    def showQuestionBox(self, csvPath):
+        reply = QtWidgets.QMessageBox.question(self.window, "Open CSV File?", "Do you want to open the newly created CSV file?", QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        if reply == QtWidgets.QMessageBox.Yes:
+            self.open_csv(csvPath)
         
     def ExportData(self, data, path: str, new_data: list, isFolderExport: bool):
         
@@ -132,9 +143,9 @@ class UnrealUITemplate(QtWidgets.QWidget):
                     # Write the new data to the CSV file
                     writer.writerows(new_data)
         QtWidgets.QMessageBox.information(self.window, "Success!", "Data exported succesfully.")
-        self.open_csv(current_path)
+        self.showQuestionBox(current_path)
         
-                
+    
     
     def ShowWarningMessageBox(self):
         QtWidgets.QMessageBox.warning(self.window, "Warning", "Multiple assets selected. Only the fist one will be shown in the UI, the rest of the data will be shown in the table below.")
@@ -258,7 +269,7 @@ class UnrealUITemplate(QtWidgets.QWidget):
 
                     
                     # TODO: THIS NEEDS TO BE USER-SETTABLE
-                    if triangle_area < 1:
+                    if triangle_area < self.microTrianglesAreaTreshold:
                         micro_triangles_count += 1
                         microtriangles.append(i)
 
@@ -284,7 +295,7 @@ class UnrealUITemplate(QtWidgets.QWidget):
                     
                     # TODO: THIS NEEDS TO BE USER-SETTABLE
                     for angle in angles:
-                        if angle < 15:
+                        if angle < self.thinTrianglesAngleTreshold:
                             thin_angle_count += 1
 
                     if thin_angle_count > 0:
