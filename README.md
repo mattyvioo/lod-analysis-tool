@@ -5,7 +5,7 @@ A simple Python tool integrated into UE5 to evaluate LoDs in the engine.
 
 ## Demo
 
-![tool-demo-gif](./resources/gif/tool-demo.gif =640x360)
+<img src="./resources/gif/tool-demo.gif" alt="tool-demo-gif" width="640" height="360" border="10" />
 
 Full demo on youtube, click the image below.
 
