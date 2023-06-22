@@ -1,0 +1,5 @@
+{
+    "microTrianglesAreaTreshold": 1,
+    "thinTrianglesAngleTreshold": 15,
+    "allowedVertexDensityTresholds": 20
+}
