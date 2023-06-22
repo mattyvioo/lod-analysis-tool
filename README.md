@@ -1,5 +1,4 @@
-720/480
-# LoD Analysis Tool
+ # LoD Analysis Tool
 
 A simple Python tool integrated into UE5 to evaluate LoDs in the engine.
 
