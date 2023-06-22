@@ -158,7 +158,7 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem2 = self.tbl_analysis.horizontalHeaderItem(2)
         ___qtablewidgetitem2.setText(QCoreApplication.translate("MainWindow", u"Triangles", None));
         ___qtablewidgetitem3 = self.tbl_analysis.horizontalHeaderItem(3)
-        ___qtablewidgetitem3.setText(QCoreApplication.translate("MainWindow", u"Vertex Density tris/m\u00b3", None));
+        ___qtablewidgetitem3.setText(QCoreApplication.translate("MainWindow", u"Vertex Density vert/cm", None));
         ___qtablewidgetitem4 = self.tbl_analysis.horizontalHeaderItem(4)
         ___qtablewidgetitem4.setText(QCoreApplication.translate("MainWindow", u"Screen Switch %", None));
         ___qtablewidgetitem5 = self.tbl_analysis.horizontalHeaderItem(5)
