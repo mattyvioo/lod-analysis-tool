@@ -18,6 +18,8 @@ class Ui_MainWindow(object):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.resize(1000, 484)
+        self.actionPreferences = QAction(MainWindow)
+        self.actionPreferences.setObjectName(u"actionPreferences")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.runButton = QPushButton(self.centralwidget)
@@ -134,10 +136,15 @@ class Ui_MainWindow(object):
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
         self.menubar.setGeometry(QRect(0, 0, 1000, 21))
+        self.menuFIle = QMenu(self.menubar)
+        self.menuFIle.setObjectName(u"menuFIle")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
         MainWindow.setStatusBar(self.statusbar)
+
+        self.menubar.addAction(self.menuFIle.menuAction())
+        self.menuFIle.addAction(self.actionPreferences)
 
         self.retranslateUi(MainWindow)
 
@@ -146,6 +153,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
+        self.actionPreferences.setText(QCoreApplication.translate("MainWindow", u"Preferences", None))
         self.runButton.setText(QCoreApplication.translate("MainWindow", u"Run Analysis", None))
         self.lbl_assetName.setText(QCoreApplication.translate("MainWindow", u"Asset name", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Lod Analysis Tool", None))
@@ -171,5 +179,6 @@ class Ui_MainWindow(object):
         self.exportButton.setText(QCoreApplication.translate("MainWindow", u"Export data to CSV", None))
         self.runFolderButton.setText(QCoreApplication.translate("MainWindow", u"Run Folder/s \n"
 "Analysis", None))
+        self.menuFIle.setTitle(QCoreApplication.translate("MainWindow", u"FIle", None))
     # retranslateUi
 
