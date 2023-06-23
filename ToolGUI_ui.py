@@ -179,6 +179,6 @@ class Ui_MainWindow(object):
         self.exportButton.setText(QCoreApplication.translate("MainWindow", u"Export data to CSV", None))
         self.runFolderButton.setText(QCoreApplication.translate("MainWindow", u"Run Folder/s \n"
 "Analysis", None))
-        self.menuFIle.setTitle(QCoreApplication.translate("MainWindow", u"FIle", None))
+        self.menuFIle.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
     # retranslateUi
 
