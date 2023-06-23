@@ -4,5 +4,5 @@
     "allowedVertexDensityTresholds": 20,
     "allowedMicrotrianglesPercentage": 10,
     "allowedThintrianglesPercentage": 10,
-    "allowedTolerancePercentage": 5
+    "allowedTolerancePercentage": 2
 }

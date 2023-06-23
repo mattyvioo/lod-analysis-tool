@@ -5,7 +5,7 @@ import sys
 import subprocess
 import datetime
 import json
-from PySide2 import QtUiTools, QtWidgets
+from PySide2 import QtUiTools, QtWidgets, QtGui
 from PySide2.QtGui import QColor
 from PySide2.QtCore import Qt
 
@@ -18,6 +18,76 @@ jsonfile = open(current_file_path + "//config//config.json", 'r')
 config = json.load(jsonfile)
 
 currentDateTime = str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
+
+class PreferencesUI(QtWidgets.QWidget):
+
+    window = None
+
+    def __init__(self, parent=None):
+        """
+        Import UI and connect components
+        """
+        super(PreferencesUI, self).__init__(parent)
+
+        # load the created UI widget
+        self.widgetPath = current_file_path + "\\"
+        self.widget = QtUiTools.QUiLoader().load(
+            self.widgetPath + "preferences.ui"
+        )  # path to PyQt .ui file
+        
+        self.preferencesWidget = None
+
+        # attach the widget to the instance of this class (aka self)
+        self.widget.setParent(self)
+        self.btn_save = self.widget.findChild(QtWidgets.QPushButton, "saveButton")
+        self.preferences_textEdit_triArea = self.widget.findChild(QtWidgets.QLineEdit, "txt_triArea")
+        self.preferences_textEdit_triAngle = self.widget.findChild(QtWidgets.QLineEdit, "txt_triAngle")
+        self.preferences_textEdit_allowedMicro = self.widget.findChild(QtWidgets.QLineEdit, "txt_allowedMicro")
+        self.preferences_textEdit_allowedThin = self.widget.findChild(QtWidgets.QLineEdit, "txt_allowedThin")
+        self.preferences_textEdit_allowedTolerance = self.widget.findChild(QtWidgets.QLineEdit, "txt_allowedTolerance")
+        
+        self.btn_save.clicked.connect(self.savePreferences)
+        
+        self.preferences_textEdit_triArea.setText(str(config["microTrianglesAreaTreshold"]))
+        self.preferences_textEdit_triAngle.setText(str(config["thinTrianglesAngleTreshold"]))
+        self.preferences_textEdit_allowedMicro.setText(str(config["allowedMicrotrianglesPercentage"]))
+        self.preferences_textEdit_allowedThin.setText(str(config["allowedThintrianglesPercentage"]))
+        self.preferences_textEdit_allowedTolerance.setText(str(config["allowedTolerancePercentage"]))
+        
+    def savePreferences(self):
+        config["microTrianglesAreaTreshold"] = int(self.preferences_textEdit_triArea.text())
+        config["thinTrianglesAngleTreshold"] = int(self.preferences_textEdit_triAngle.text())
+        config["allowedMicrotrianglesPercentage"] = int(self.preferences_textEdit_allowedMicro.text())
+        config["allowedThintrianglesPercentage"] = int(self.preferences_textEdit_allowedThin.text())
+        config["allowedTolerancePercentage"] = int(self.preferences_textEdit_allowedTolerance.text())
+        
+        with open(current_file_path + "//config//config.json", 'w') as file:
+            json.dump(config, file, indent=4)
+        
+        QtWidgets.QMessageBox.information(self.window, "Success!", "Preferences saved!.")
+        
+        
+    
+        
+def openPrefWindow():
+    """
+    Create tool window.
+    """
+    if QtWidgets.QApplication.instance():
+        # Id any current instances of tool and destroy
+        for win in QtWidgets.QApplication.allWindows():
+            if "preferences" in win.objectName():  # update this name to match name below
+                win.destroy()
+    else:
+        QtWidgets.QApplication(sys.argv)
+
+    # load UI into QApp instance
+    UnrealUITemplate.window = PreferencesUI()
+    UnrealUITemplate.window.show()
+    # update this with something unique to your tool
+    UnrealUITemplate.window.setObjectName("Preferences")
+    UnrealUITemplate.window.setWindowTitle("Preferences")
+    ue.parent_external_window_to_slate(UnrealUITemplate.window.winId())
 
 class UnrealUITemplate(QtWidgets.QWidget):
     """
@@ -84,11 +154,6 @@ class UnrealUITemplate(QtWidgets.QWidget):
         self.assetsToFilter = []
         self.static_meshes = []
         self.isLastAnalysisFolder = False
-        self.microTrianglesAreaTreshold = config["microTrianglesAreaTreshold"]
-        self.thinTrianglesAngleTreshold = config["thinTrianglesAngleTreshold"]
-        self.allowedMicrotrianglesPercentage = config["allowedMicrotrianglesPercentage"]
-        self.allowedThintrianglesPercentage = config["allowedThintrianglesPercentage"]
-        self.allowedTolerancePercentage = config["allowedTolerancePercentage"]
         self.belowTresholdColor = QColor(0, 255, 0)
         self.maximunTresholdColor = QColor(255, 255, 0)
         self.overTresholdColor = QColor(255, 0, 0)
@@ -99,12 +164,9 @@ class UnrealUITemplate(QtWidgets.QWidget):
         self.btn_folderRun.clicked.connect(lambda: self.Run(True))
         self.btn_export.clicked.connect(lambda: self.ExportData(self.data, current_file_path, self.newData, self.isLastAnalysisFolder))
         self.btn_preferences.triggered.connect(self.OpenPreferencesGUI)
-        
     
     def OpenPreferencesGUI(self):
-        self.preferencesWidget = QtUiTools.QUiLoader().load(self.widgetPath + "preferences.ui")
-        self.preferencesWidget.setParent(self)
-        
+        openPrefWindow()
 
     def open_csv(self, file_path: str):
         if sys.platform.startswith('darwin'):  # macOS
@@ -293,7 +355,7 @@ class UnrealUITemplate(QtWidgets.QWidget):
                     )
 
                     
-                    if triangle_area < self.microTrianglesAreaTreshold:
+                    if triangle_area < config["microTrianglesAreaTreshold"]:
                         micro_triangles_count += 1
                         microtriangles.append(i)
 
@@ -318,16 +380,16 @@ class UnrealUITemplate(QtWidgets.QWidget):
                     thin_angle_count = 0
                     
                     for angle in angles:
-                        if angle < self.thinTrianglesAngleTreshold:
+                        if angle < config["thinTrianglesAngleTreshold"]:
                             thin_angle_count += 1
 
                     if thin_angle_count > 0:
                         thin_triangles_count += 1
                         thintriangles.append(i)
                 
-                allowedLodToleranceNumber = num_triangles_lod / 100 * self.allowedTolerancePercentage
-                allowedMicrotrianglesNumber = num_triangles_lod / 100 * self.allowedMicrotrianglesPercentage
-                allowedThintrianglesNumber = num_triangles_lod / 100 * self.allowedThintrianglesPercentage
+                allowedLodToleranceNumber = num_triangles_lod / 100 * config["allowedTolerancePercentage"]
+                allowedMicrotrianglesNumber = num_triangles_lod / 100 * config["allowedMicrotrianglesPercentage"]
+                allowedThintrianglesNumber = num_triangles_lod / 100 * config["allowedThintrianglesPercentage"]
                 
                 microTrianglesTextColor = self.SetTextColor(micro_triangles_count, allowedLodToleranceNumber, allowedMicrotrianglesNumber)
                 thinTrianglesTextColor = self.SetTextColor(thin_triangles_count, allowedLodToleranceNumber, allowedThintrianglesNumber)     
@@ -389,7 +451,7 @@ class UnrealUITemplate(QtWidgets.QWidget):
         self.destroy()
 
 
-def openWindow():
+def openMainWindow():
     """
     Create tool window.
     """
@@ -410,4 +472,4 @@ def openWindow():
     ue.parent_external_window_to_slate(UnrealUITemplate.window.winId())
 
 
-openWindow()
+openMainWindow()
