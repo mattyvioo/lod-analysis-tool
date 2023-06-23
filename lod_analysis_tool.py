@@ -38,6 +38,8 @@ class UnrealUITemplate(QtWidgets.QWidget):
         self.widget = QtUiTools.QUiLoader().load(
             self.widgetPath + "ToolGUI.ui"
         )  # path to PyQt .ui file
+        
+        self.preferencesWidget = None
 
         # attach the widget to the instance of this class (aka self)
         self.widget.setParent(self)
@@ -49,6 +51,7 @@ class UnrealUITemplate(QtWidgets.QWidget):
         self.btn_run = self.widget.findChild(QtWidgets.QPushButton, "runButton")
         self.btn_folderRun = self.widget.findChild(QtWidgets.QPushButton, "runFolderButton")
         self.btn_export = self.widget.findChild(QtWidgets.QPushButton, "exportButton")
+        self.btn_preferences = self.widget.findChild(QtWidgets.QAction, "actionPreferences")
         self.txt_assetName = self.widget.findChild(
             QtWidgets.QLabel, "lbl_editAssetName"
         )
@@ -95,6 +98,12 @@ class UnrealUITemplate(QtWidgets.QWidget):
         self.btn_run.clicked.connect(lambda: self.Run(False))
         self.btn_folderRun.clicked.connect(lambda: self.Run(True))
         self.btn_export.clicked.connect(lambda: self.ExportData(self.data, current_file_path, self.newData, self.isLastAnalysisFolder))
+        self.btn_preferences.triggered.connect(self.OpenPreferencesGUI)
+        
+    
+    def OpenPreferencesGUI(self):
+        self.preferencesWidget = QtUiTools.QUiLoader().load(self.widgetPath + "preferences.ui")
+        self.preferencesWidget.setParent(self)
         
 
     def open_csv(self, file_path: str):
@@ -321,33 +330,22 @@ class UnrealUITemplate(QtWidgets.QWidget):
                 allowedThintrianglesNumber = num_triangles_lod / 100 * self.allowedThintrianglesPercentage
                 
                 microTrianglesTextColor = self.SetTextColor(micro_triangles_count, allowedLodToleranceNumber, allowedMicrotrianglesNumber)
-                thinTrianglesTextColor = self.SetTextColor(thin_triangles_count, allowedLodToleranceNumber, allowedThintrianglesNumber)            
+                thinTrianglesTextColor = self.SetTextColor(thin_triangles_count, allowedLodToleranceNumber, allowedThintrianglesNumber)     
                 
-                # Populating the table        
-                item1 = QtWidgets.QTableWidgetItem(asset_name)
-                SetItemInTable(self, item1, 0, asset_name, row)
-
-                item2 = QtWidgets.QTableWidgetItem(k)
-                SetItemInTable(self, item2, 1, k, row)
-
-                item3 = QtWidgets.QTableWidgetItem(num_triangles_lod)
-                SetItemInTable(self, item3, 2, num_triangles_lod, row)
+                values = [asset_name,k, num_triangles_lod, vertex_density, lod_screen_sizes[k], micro_triangles_count, thin_triangles_count]
+                table_items = []  
                 
-                item4 = QtWidgets.QTableWidgetItem(vertex_density)
-                SetItemInTable(self, item4, 3, round(vertex_density, 3), row)
-                
-                item5 = QtWidgets.QTableWidgetItem(lod_screen_sizes[k])
-                SetItemInTable(self, item5, 4, f"{round(lod_screen_sizes[k], 4)*100}%", row)
-
-                item6 = QtWidgets.QTableWidgetItem(str(micro_triangles_count))
-                SetItemInTable(self, item6, 5, micro_triangles_count, row)
-                item6.setForeground(QColor(microTrianglesTextColor))
-
-                item7 = QtWidgets.QTableWidgetItem(thin_triangles_count)
-                SetItemInTable(self, item7, 6, thin_triangles_count, row)
-                item7.setForeground(QColor(thinTrianglesTextColor))
-                
-                table_items = [item1, item2, item3, item4, item5, item6, item7]
+                for i, value in enumerate(values):
+                    item = QtWidgets.QTableWidgetItem(value)
+                    if i == 3:
+                        value = round(vertex_density, 3)
+                    if i == 4:
+                        value = f"{round(value, 4)*100}%"
+                    SetItemInTable(self, item, i, value, row)
+                    table_items.append(item)
+                    
+                table_items[5].setForeground(QColor(microTrianglesTextColor))
+                table_items[6].setForeground(QColor(thinTrianglesTextColor))
                 
                 for item in table_items:
                     item.setTextAlignment(3)
