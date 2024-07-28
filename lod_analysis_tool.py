@@ -5,7 +5,8 @@ import sys
 import subprocess
 import datetime
 import json
-from PySide2 import QtUiTools, QtWidgets
+from PySide2 import QtUiTools, QtWidgets, QtGui
+from PySide2.QtGui import QColor
 from PySide2.QtCore import Qt
 
 import os
@@ -17,6 +18,76 @@ jsonfile = open(current_file_path + "//config//config.json", 'r')
 config = json.load(jsonfile)
 
 currentDateTime = str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))
+
+class PreferencesUI(QtWidgets.QWidget):
+
+    window = None
+
+    def __init__(self, parent=None):
+        """
+        Import UI and connect components
+        """
+        super(PreferencesUI, self).__init__(parent)
+
+        # load the created UI widget
+        self.widgetPath = current_file_path + "\\"
+        self.widget = QtUiTools.QUiLoader().load(
+            self.widgetPath + "preferences.ui"
+        )  # path to PyQt .ui file
+        
+        self.preferencesWidget = None
+
+        # attach the widget to the instance of this class (aka self)
+        self.widget.setParent(self)
+        self.btn_save = self.widget.findChild(QtWidgets.QPushButton, "saveButton")
+        self.preferences_textEdit_triArea = self.widget.findChild(QtWidgets.QLineEdit, "txt_triArea")
+        self.preferences_textEdit_triAngle = self.widget.findChild(QtWidgets.QLineEdit, "txt_triAngle")
+        self.preferences_textEdit_allowedMicro = self.widget.findChild(QtWidgets.QLineEdit, "txt_allowedMicro")
+        self.preferences_textEdit_allowedThin = self.widget.findChild(QtWidgets.QLineEdit, "txt_allowedThin")
+        self.preferences_textEdit_allowedTolerance = self.widget.findChild(QtWidgets.QLineEdit, "txt_allowedTolerance")
+        
+        self.btn_save.clicked.connect(self.savePreferences)
+        
+        self.preferences_textEdit_triArea.setText(str(config["microTrianglesAreaTreshold"]))
+        self.preferences_textEdit_triAngle.setText(str(config["thinTrianglesAngleTreshold"]))
+        self.preferences_textEdit_allowedMicro.setText(str(config["allowedMicrotrianglesPercentage"]))
+        self.preferences_textEdit_allowedThin.setText(str(config["allowedThintrianglesPercentage"]))
+        self.preferences_textEdit_allowedTolerance.setText(str(config["allowedTolerancePercentage"]))
+        
+    def savePreferences(self):
+        config["microTrianglesAreaTreshold"] = int(self.preferences_textEdit_triArea.text())
+        config["thinTrianglesAngleTreshold"] = int(self.preferences_textEdit_triAngle.text())
+        config["allowedMicrotrianglesPercentage"] = int(self.preferences_textEdit_allowedMicro.text())
+        config["allowedThintrianglesPercentage"] = int(self.preferences_textEdit_allowedThin.text())
+        config["allowedTolerancePercentage"] = int(self.preferences_textEdit_allowedTolerance.text())
+        
+        with open(current_file_path + "//config//config.json", 'w') as file:
+            json.dump(config, file, indent=4)
+        
+        QtWidgets.QMessageBox.information(self.window, "Success!", "Preferences saved!.")
+        
+        
+    
+        
+def openPrefWindow():
+    """
+    Create tool window.
+    """
+    if QtWidgets.QApplication.instance():
+        # Id any current instances of tool and destroy
+        for win in QtWidgets.QApplication.allWindows():
+            if "preferences" in win.objectName():  # update this name to match name below
+                win.destroy()
+    else:
+        QtWidgets.QApplication(sys.argv)
+
+    # load UI into QApp instance
+    UnrealUITemplate.window = PreferencesUI()
+    UnrealUITemplate.window.show()
+    # update this with something unique to your tool
+    UnrealUITemplate.window.setObjectName("Preferences")
+    UnrealUITemplate.window.setWindowTitle("Preferences")
+    ue.parent_external_window_to_slate(UnrealUITemplate.window.winId())
 
 class UnrealUITemplate(QtWidgets.QWidget):
     """
@@ -37,6 +108,8 @@ class UnrealUITemplate(QtWidgets.QWidget):
         self.widget = QtUiTools.QUiLoader().load(
             self.widgetPath + "ToolGUI.ui"
         )  # path to PyQt .ui file
+        
+        self.preferencesWidget = None
 
         # attach the widget to the instance of this class (aka self)
         self.widget.setParent(self)
@@ -48,6 +121,7 @@ class UnrealUITemplate(QtWidgets.QWidget):
         self.btn_run = self.widget.findChild(QtWidgets.QPushButton, "runButton")
         self.btn_folderRun = self.widget.findChild(QtWidgets.QPushButton, "runFolderButton")
         self.btn_export = self.widget.findChild(QtWidgets.QPushButton, "exportButton")
+        self.btn_preferences = self.widget.findChild(QtWidgets.QAction, "actionPreferences")
         self.txt_assetName = self.widget.findChild(
             QtWidgets.QLabel, "lbl_editAssetName"
         )
@@ -80,15 +154,19 @@ class UnrealUITemplate(QtWidgets.QWidget):
         self.assetsToFilter = []
         self.static_meshes = []
         self.isLastAnalysisFolder = False
-        self.microTrianglesAreaTreshold = config["microTrianglesAreaTreshold"]
-        self.thinTrianglesAngleTreshold = config["thinTrianglesAngleTreshold"]
+        self.belowTresholdColor = QColor(0, 255, 0)
+        self.maximunTresholdColor = QColor(255, 255, 0)
+        self.overTresholdColor = QColor(255, 0, 0)
         
         self.newData = []
 
         self.btn_run.clicked.connect(lambda: self.Run(False))
         self.btn_folderRun.clicked.connect(lambda: self.Run(True))
         self.btn_export.clicked.connect(lambda: self.ExportData(self.data, current_file_path, self.newData, self.isLastAnalysisFolder))
-        
+        self.btn_preferences.triggered.connect(self.OpenPreferencesGUI)
+    
+    def OpenPreferencesGUI(self):
+        openPrefWindow()
 
     def open_csv(self, file_path: str):
         if sys.platform.startswith('darwin'):  # macOS
@@ -144,7 +222,16 @@ class UnrealUITemplate(QtWidgets.QWidget):
                     writer.writerows(new_data)
         QtWidgets.QMessageBox.information(self.window, "Success!", "Data exported succesfully.")
         self.showQuestionBox(current_path)
-        
+    
+    def SetTextColor(self, countToCheck: float, toleranceCount: float, allowedCount: float):
+        tempColor = self.belowTresholdColor
+        if countToCheck - toleranceCount > allowedCount:
+            tempColor = self.overTresholdColor
+        elif countToCheck - toleranceCount < allowedCount:
+            tempColor = self.belowTresholdColor
+        else:
+            tempColor = self.maximunTresholdColor
+        return tempColor    
     
     
     def ShowWarningMessageBox(self):
@@ -210,12 +297,46 @@ class UnrealUITemplate(QtWidgets.QWidget):
             
             item_data = []
 
-            for k in range(lod_count):
-                sm_description = ue.StaticMesh.get_static_mesh_description(asset, k)
+            temp_meshes = []
+
+            for lod_index in range(lod_count):
+                sm_description = ue.StaticMesh.get_static_mesh_description(asset, lod_index)
+                section_count = ue.StaticMesh.get_num_sections(asset, lod_index)
+                print(f"Lod Index {lod_index}")
+                print(f"section count {section_count}")
+
+                if(sm_description == None):
+                    editor_actor_sbs = ue.EditorActorSubsystem()
+                    editor_asset_sbs = ue.EditorAssetSubsystem()
+                    static_mesh_editor_sbs = ue.StaticMeshEditorSubsystem()
+
+                    spawned_lod_actor = editor_actor_sbs.spawn_actor_from_object(asset, ue.Vector.ZERO, ue.Rotator(0, 0, 0))
+
+                    merge_options = ue.MergeStaticMeshActorsOptions()
+                    merge_options.base_package_name = f"/Game/TempMeshes/TempMesh{lod_index}"
+                    temp_meshes.append(merge_options.base_package_name)
+                    merge_options.destroy_source_actors = True
+                    merge_options.new_actor_label = f"{asset_name}_{lod_index}"
+                    
+                    mesh_merge_settings = ue.MeshMergingSettings()
+                    mesh_merge_settings.lod_selection_type = ue.MeshLODSelectionType.SPECIFIC_LOD
+                    mesh_merge_settings.specific_lod = lod_index
+
+                    merge_options.mesh_merging_settings = mesh_merge_settings
+
+                    actors_to_merge = [spawned_lod_actor]
+
+                    merged_actor = static_mesh_editor_sbs.merge_static_mesh_actors(actors_to_merge, merge_options)
+                    sm_component = merged_actor.static_mesh_component
+                    extracted_asset = sm_component.static_mesh
+                    sm_description = ue.StaticMesh.get_static_mesh_description(extracted_asset, 0)
+
+                    editor_actor_sbs.destroy_actor(merged_actor)
+                    
                 vertex_density = (
                     sm_description.get_vertex_count() / asset_bounds_diameter
                 )
-                num_triangles_lod = ue.StaticMesh.get_num_triangles(asset, k)
+                num_triangles_lod = ue.StaticMesh.get_num_triangles(asset, lod_index)
                 micro_triangles_count = 0
                 thin_triangles_count = 0
                 thin_triangles_count = 0
@@ -241,11 +362,11 @@ class UnrealUITemplate(QtWidgets.QWidget):
                         triangle_vertices[5]
                     )
 
-                    triangle_vertices = [
-                        first_vertex_position,
-                        second_vertex_position,
-                        third_vertex_position,
-                    ]
+                    # triangle_vertices = [
+                    #     first_vertex_position,
+                    #     second_vertex_position,
+                    #     third_vertex_position,
+                    # ]
 
                     first_edge_legth = ue.Vector.distance(
                         first_vertex_position, second_vertex_position
@@ -268,8 +389,7 @@ class UnrealUITemplate(QtWidgets.QWidget):
                     )
 
                     
-                    # TODO: THIS NEEDS TO BE USER-SETTABLE
-                    if triangle_area < self.microTrianglesAreaTreshold:
+                    if triangle_area < config["microTrianglesAreaTreshold"]:
                         micro_triangles_count += 1
                         microtriangles.append(i)
 
@@ -293,39 +413,35 @@ class UnrealUITemplate(QtWidgets.QWidget):
 
                     thin_angle_count = 0
                     
-                    # TODO: THIS NEEDS TO BE USER-SETTABLE
                     for angle in angles:
-                        if angle < self.thinTrianglesAngleTreshold:
+                        if angle < config["thinTrianglesAngleTreshold"]:
                             thin_angle_count += 1
 
                     if thin_angle_count > 0:
                         thin_triangles_count += 1
                         thintriangles.append(i)
                 
+                allowedLodToleranceNumber = num_triangles_lod / 100 * config["allowedTolerancePercentage"]
+                allowedMicrotrianglesNumber = num_triangles_lod / 100 * config["allowedMicrotrianglesPercentage"]
+                allowedThintrianglesNumber = num_triangles_lod / 100 * config["allowedThintrianglesPercentage"]
                 
-                # Populating the table        
-                item1 = QtWidgets.QTableWidgetItem(asset_name)
-                SetItemInTable(self, item1, 0, asset_name, row)
-
-                item2 = QtWidgets.QTableWidgetItem(k)
-                SetItemInTable(self, item2, 1, k, row)
-
-                item3 = QtWidgets.QTableWidgetItem(num_triangles_lod)
-                SetItemInTable(self, item3, 2, num_triangles_lod, row)
+                microTrianglesTextColor = self.SetTextColor(micro_triangles_count, allowedLodToleranceNumber, allowedMicrotrianglesNumber)
+                thinTrianglesTextColor = self.SetTextColor(thin_triangles_count, allowedLodToleranceNumber, allowedThintrianglesNumber)     
                 
-                item4 = QtWidgets.QTableWidgetItem(vertex_density)
-                SetItemInTable(self, item4, 3, round(vertex_density, 3), row)
+                values = [asset_name,lod_index, num_triangles_lod, vertex_density, lod_screen_sizes[lod_index], micro_triangles_count, thin_triangles_count]
+                table_items = []  
                 
-                item5 = QtWidgets.QTableWidgetItem(lod_screen_sizes[k])
-                SetItemInTable(self, item5, 4, f"{round(lod_screen_sizes[k], 4)*100}%", row)
-
-                item6 = QtWidgets.QTableWidgetItem(str(micro_triangles_count))
-                SetItemInTable(self, item6, 5, micro_triangles_count, row)
-
-                item7 = QtWidgets.QTableWidgetItem(thin_triangles_count)
-                SetItemInTable(self, item7, 6, thin_triangles_count, row)
-                
-                table_items = [item1, item2, item3, item4, item5, item6, item7]
+                for i, value in enumerate(values):
+                    item = QtWidgets.QTableWidgetItem(value)
+                    if i == 3:
+                        value = round(vertex_density, 3)
+                    if i == 4:
+                        value = f"{round(value, 4)*100}%"
+                    SetItemInTable(self, item, i, value, row)
+                    table_items.append(item)
+                    
+                table_items[5].setForeground(QColor(microTrianglesTextColor))
+                table_items[6].setForeground(QColor(thinTrianglesTextColor))
                 
                 for item in table_items:
                     item.setTextAlignment(3)
@@ -335,7 +451,7 @@ class UnrealUITemplate(QtWidgets.QWidget):
                     
                         asset_name,
                         num_triangles_lod,
-                        k,
+                        lod_index,
                         micro_triangles_count,
                         thin_triangles_count,
                     
@@ -350,11 +466,10 @@ class UnrealUITemplate(QtWidgets.QWidget):
                 self.newData.append(data)
 
             self.btn_export.setEnabled(True)
-            
 
-            
-                
-        
+            for temp_mesh in temp_meshes:
+                editor_asset_sbs.delete_asset(temp_mesh)
+                          
 
     def resizeEvent(self, event):
         """
@@ -369,7 +484,7 @@ class UnrealUITemplate(QtWidgets.QWidget):
         self.destroy()
 
 
-def openWindow():
+def openMainWindow():
     """
     Create tool window.
     """
@@ -390,4 +505,4 @@ def openWindow():
     ue.parent_external_window_to_slate(UnrealUITemplate.window.winId())
 
 
-openWindow()
+openMainWindow()
