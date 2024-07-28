@@ -306,8 +306,11 @@ class UnrealUITemplate(QtWidgets.QWidget):
                 print(f"section count {section_count}")
 
                 if(sm_description == None):
-                    editor_actor_subsystem = ue.EditorActorSubsystem()
-                    spawned_lod_actor = editor_actor_subsystem.spawn_actor_from_object(asset, ue.Vector.ZERO, ue.Rotator(0, 0, 0))
+                    editor_actor_sbs = ue.EditorActorSubsystem()
+                    editor_asset_sbs = ue.EditorAssetSubsystem()
+                    static_mesh_editor_sbs = ue.StaticMeshEditorSubsystem()
+
+                    spawned_lod_actor = editor_actor_sbs.spawn_actor_from_object(asset, ue.Vector.ZERO, ue.Rotator(0, 0, 0))
 
                     merge_options = ue.MergeStaticMeshActorsOptions()
                     merge_options.base_package_name = f"/Game/TempMeshes/TempMesh{lod_index}"
@@ -323,15 +326,12 @@ class UnrealUITemplate(QtWidgets.QWidget):
 
                     actors_to_merge = [spawned_lod_actor]
 
-                    smes = ue.StaticMeshEditorSubsystem()
-                    merged_actor = smes.merge_static_mesh_actors(actors_to_merge, merge_options)
+                    merged_actor = static_mesh_editor_sbs.merge_static_mesh_actors(actors_to_merge, merge_options)
                     sm_component = merged_actor.static_mesh_component
                     extracted_asset = sm_component.static_mesh
                     sm_description = ue.StaticMesh.get_static_mesh_description(extracted_asset, 0)
 
-                    editor_actor_subsystem.destroy_actor(merged_actor)
-                    editor_asset_subsystem = ue.EditorAssetSubsystem()
-                    # editor_asset_subsystem.delete_asset(merge_options.base_package_name)
+                    editor_actor_sbs.destroy_actor(merged_actor)
                     
                 vertex_density = (
                     sm_description.get_vertex_count() / asset_bounds_diameter
@@ -468,12 +468,8 @@ class UnrealUITemplate(QtWidgets.QWidget):
             self.btn_export.setEnabled(True)
 
             for temp_mesh in temp_meshes:
-                editor_asset_subsystem.delete_asset(temp_mesh)
-            
-
-            
-                
-        
+                editor_asset_sbs.delete_asset(temp_mesh)
+                          
 
     def resizeEvent(self, event):
         """

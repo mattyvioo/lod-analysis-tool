@@ -369,7 +369,7 @@ Analysis</string>
    </property>
    <widget class="QMenu" name="menuFIle">
     <property name="title">
-     <string>FIle</string>
+     <string>Preferences</string>
     </property>
     <addaction name="actionPreferences"/>
    </widget>
@@ -378,7 +378,7 @@ Analysis</string>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionPreferences">
    <property name="text">
-    <string>Preferences</string>
+    <string>Modify preferences</string>
    </property>
   </action>
  </widget>
