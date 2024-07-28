@@ -297,12 +297,46 @@ class UnrealUITemplate(QtWidgets.QWidget):
             
             item_data = []
 
-            for k in range(lod_count):
-                sm_description = ue.StaticMesh.get_static_mesh_description(asset, k)
+            temp_meshes = []
+
+            for lod_index in range(lod_count):
+                sm_description = ue.StaticMesh.get_static_mesh_description(asset, lod_index)
+                section_count = ue.StaticMesh.get_num_sections(asset, lod_index)
+                print(f"Lod Index {lod_index}")
+                print(f"section count {section_count}")
+
+                if(sm_description == None):
+                    editor_actor_subsystem = ue.EditorActorSubsystem()
+                    spawned_lod_actor = editor_actor_subsystem.spawn_actor_from_object(asset, ue.Vector.ZERO, ue.Rotator(0, 0, 0))
+
+                    merge_options = ue.MergeStaticMeshActorsOptions()
+                    merge_options.base_package_name = f"/Game/TempMeshes/TempMesh{lod_index}"
+                    temp_meshes.append(merge_options.base_package_name)
+                    merge_options.destroy_source_actors = True
+                    merge_options.new_actor_label = f"{asset_name}_{lod_index}"
+                    
+                    mesh_merge_settings = ue.MeshMergingSettings()
+                    mesh_merge_settings.lod_selection_type = ue.MeshLODSelectionType.SPECIFIC_LOD
+                    mesh_merge_settings.specific_lod = lod_index
+
+                    merge_options.mesh_merging_settings = mesh_merge_settings
+
+                    actors_to_merge = [spawned_lod_actor]
+
+                    smes = ue.StaticMeshEditorSubsystem()
+                    merged_actor = smes.merge_static_mesh_actors(actors_to_merge, merge_options)
+                    sm_component = merged_actor.static_mesh_component
+                    extracted_asset = sm_component.static_mesh
+                    sm_description = ue.StaticMesh.get_static_mesh_description(extracted_asset, 0)
+
+                    editor_actor_subsystem.destroy_actor(merged_actor)
+                    editor_asset_subsystem = ue.EditorAssetSubsystem()
+                    # editor_asset_subsystem.delete_asset(merge_options.base_package_name)
+                    
                 vertex_density = (
                     sm_description.get_vertex_count() / asset_bounds_diameter
                 )
-                num_triangles_lod = ue.StaticMesh.get_num_triangles(asset, k)
+                num_triangles_lod = ue.StaticMesh.get_num_triangles(asset, lod_index)
                 micro_triangles_count = 0
                 thin_triangles_count = 0
                 thin_triangles_count = 0
@@ -328,11 +362,11 @@ class UnrealUITemplate(QtWidgets.QWidget):
                         triangle_vertices[5]
                     )
 
-                    triangle_vertices = [
-                        first_vertex_position,
-                        second_vertex_position,
-                        third_vertex_position,
-                    ]
+                    # triangle_vertices = [
+                    #     first_vertex_position,
+                    #     second_vertex_position,
+                    #     third_vertex_position,
+                    # ]
 
                     first_edge_legth = ue.Vector.distance(
                         first_vertex_position, second_vertex_position
@@ -394,7 +428,7 @@ class UnrealUITemplate(QtWidgets.QWidget):
                 microTrianglesTextColor = self.SetTextColor(micro_triangles_count, allowedLodToleranceNumber, allowedMicrotrianglesNumber)
                 thinTrianglesTextColor = self.SetTextColor(thin_triangles_count, allowedLodToleranceNumber, allowedThintrianglesNumber)     
                 
-                values = [asset_name,k, num_triangles_lod, vertex_density, lod_screen_sizes[k], micro_triangles_count, thin_triangles_count]
+                values = [asset_name,lod_index, num_triangles_lod, vertex_density, lod_screen_sizes[lod_index], micro_triangles_count, thin_triangles_count]
                 table_items = []  
                 
                 for i, value in enumerate(values):
@@ -417,7 +451,7 @@ class UnrealUITemplate(QtWidgets.QWidget):
                     
                         asset_name,
                         num_triangles_lod,
-                        k,
+                        lod_index,
                         micro_triangles_count,
                         thin_triangles_count,
                     
@@ -432,6 +466,9 @@ class UnrealUITemplate(QtWidgets.QWidget):
                 self.newData.append(data)
 
             self.btn_export.setEnabled(True)
+
+            for temp_mesh in temp_meshes:
+                editor_asset_subsystem.delete_asset(temp_mesh)
             
 
             
