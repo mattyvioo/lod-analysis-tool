@@ -1,7 +1,6 @@
- # LoD Analysis Tool
+# LoD Analysis Tool
 
 A simple Python tool integrated into UE5 to evaluate LoDs in the engine.
-
 
 ## Demo
 
@@ -21,7 +20,6 @@ Full demo on youtube, click the image below.
 
 **Unreal Engine Python API**
 
-
 ## Installation
 
 Follow the official documentation to integrate Python in the Engine first.
@@ -35,7 +33,6 @@ Run the custom_menu_unreal.py script.
 
 A new menu on the top bar will appear, you can then launch the tool from there.
 
-    
 ## Usage
 
 - Run the tool from the custom menu.
@@ -54,18 +51,15 @@ Be sure to do it with the tool closed.
 
 ![tool-screenshot](./resources/images/tool-screenshot.png)
 
-
 ## Roadmap
 
-- Add a GUI to let the user decide the settings of the tool (thresholds for Micro, Thin Triangles, and allowed Vertex Density)
-- <s>Let the user select a folder and run the analysis on it</s>
-- Color-coding the data to outline if the mesh is valid or not quickly
+- ~~Add a GUI to let the user decide the settings of the tool (thresholds for Micro, Thin Triangles, and allowed Vertex Density)~~
+- `<s>`Let the user select a folder and run the analysis on it `</s>`
+- ~~Color-code the data to quickly outline if the mesh is valid or not~~
 - Write a proper documentation
-
 
 ## Acknowledgements
 
- - [Unreal .ui Template](https://gist.github.com/isaacoster/24375ae0fb84dda7aea916077df3f5f4)
- - [Isaac Oster Youtube channel - Unreal python API tutorial](https://www.youtube.com/@IsaacOster)
- - [How to write a Good readme](https://bulldogjob.com/news/449-how-to-write-a-good-readme-for-your-github-project)
-
+- [Unreal .ui Template](https://gist.github.com/isaacoster/24375ae0fb84dda7aea916077df3f5f4)
+- [Isaac Oster Youtube channel - Unreal python API tutorial](https://www.youtube.com/@IsaacOster)
+- [How to write a Good readme](https://bulldogjob.com/news/449-how-to-write-a-good-readme-for-your-github-project)
