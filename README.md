@@ -54,7 +54,7 @@ Be sure to do it with the tool closed.
 ## Roadmap
 
 - ~~Add a GUI to let the user decide the settings of the tool (thresholds for Micro, Thin Triangles, and allowed Vertex Density)~~
-- `<s>`Let the user select a folder and run the analysis on it `</s>`
+- ~~Let the user select a folder and run the analysis on it~~
 - ~~Color-code the data to quickly outline if the mesh is valid or not~~
 - Write a proper documentation
 
